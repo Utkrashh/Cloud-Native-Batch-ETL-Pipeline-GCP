@@ -30,7 +30,7 @@ dag = DAG(
     "coingecko_etl_dag",
     default_args=default_args,
     description="A DAG for ETL pipeline to load real-time CoinGecko data into BigQuery",
-    schedule_interval="@daily",
+    schedule_interval="*/2 * * * *",
     start_date=days_ago(1),
     catchup=False,
 )

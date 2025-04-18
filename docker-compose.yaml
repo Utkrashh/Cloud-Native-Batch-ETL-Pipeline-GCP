@@ -1,4 +1,5 @@
 version: '3.8'
+
 services:
   postgres:
     image: postgres:13
@@ -41,14 +42,14 @@ services:
       - AIRFLOW__CORE__FERNET_KEY=${FERNET_KEY}
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     volumes:
-      - ./dags:/opt/airflow/dags
-      - ./logs:/opt/airflow/logs
-      - ./plugins:/opt/airflow/plugins
-      - ./keys:/opt/airflow/keys  # Mount the keys folder
-      - ./start.sh:/start.sh  # Mount start.sh inside the container
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ./airflow/keys:/opt/airflow/keys
+      - ./start.sh:/start.sh
     ports:
       - "8080:8080"
-    command: ["bash", "-c", "/start.sh && airflow webserver"]  # Create user and start webserver
+    command: ["bash", "-c", "chmod +x /start.sh && /start.sh && airflow webserver"]
 
   airflow-scheduler:
     image: apache/airflow:2.5.3
@@ -63,8 +64,8 @@ services:
       - AIRFLOW__CORE__FERNET_KEY=${FERNET_KEY}
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
     volumes:
-      - ./dags:/opt/airflow/dags
-      - ./logs:/opt/airflow/logs
-      - ./plugins:/opt/airflow/plugins
-      - ./keys:/opt/airflow/keys  # Mount the keys folder
+      - ./airflow/dags:/opt/airflow/dags
+      - ./airflow/logs:/opt/airflow/logs
+      - ./airflow/plugins:/opt/airflow/plugins
+      - ./airflow/keys:/opt/airflow/keys
     command: scheduler
