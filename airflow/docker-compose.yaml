@@ -19,11 +19,12 @@ services:
     depends_on:
       - postgres
       - redis
+    env_file:
+      - .env
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__CORE__FERNET_KEY=${FERNET_KEY}
       - AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}
     command: ["airflow", "db", "init"]
 
   airflow-webserver:
@@ -32,16 +33,18 @@ services:
       - postgres
       - redis
       - airflow-init
+    env_file:
+      - .env
     environment:
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__CORE__FERNET_KEY=${FERNET_KEY}
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
+      - ./keys:/opt/airflow/keys  # Mount the keys folder
     ports:
       - "8080:8080"
     command: webserver
@@ -52,13 +55,15 @@ services:
       - postgres
       - redis
       - airflow-webserver
+    env_file:
+      - .env
     environment:
       - AIRFLOW__CORE__EXECUTOR=LocalExecutor
       - AIRFLOW__CORE__FERNET_KEY=${FERNET_KEY}
       - AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
-      - GOOGLE_APPLICATION_CREDENTIALS=${GOOGLE_APPLICATION_CREDENTIALS}
     volumes:
       - ./dags:/opt/airflow/dags
       - ./logs:/opt/airflow/logs
       - ./plugins:/opt/airflow/plugins
+      - ./keys:/opt/airflow/keys  # Mount the keys folder
     command: scheduler
