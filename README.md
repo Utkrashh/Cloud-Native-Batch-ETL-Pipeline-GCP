@@ -23,8 +23,7 @@ Cloud-Native-ETL-Pipeline-Batch-Streaming-Data-Processing/
 │   ├── docker-compose.yaml     # Docker Compose file to run Airflow services
 │   └── .env                    # Environment variables file (to store sensitive credentials)
 │   └── env.example             # Example of the .env file to help others set up their environment
-│
-├── dags/                       # Folder to store Airflow DAGs (Directed Acyclic Graphs)
+│   |__ dags/                   # Folder to store Airflow DAGs (Directed Acyclic Graphs)
 │   └── coingecko_batch_dag.py  # Airflow DAG script for the batch ETL pipeline
 │
 └── venv/                       # Virtual environment folder (created by Python)
