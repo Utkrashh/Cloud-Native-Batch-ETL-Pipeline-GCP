@@ -13,6 +13,7 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     python3-dev \
     gcc \
+    docker-compose \
     && curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - \
     && echo "deb https://packages.cloud.google.com/apt cloud-sdk main" \
     | tee -a /etc/apt/sources.list.d/google-cloud-sdk.list \
@@ -29,3 +30,6 @@ COPY requirements.txt .
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Set the default command
+CMD ["airflow", "webserver"]
