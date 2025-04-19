@@ -32,7 +32,6 @@ COPY start.sh /start.sh
 # Set environment variables for Airflow
 ENV AIRFLOW__CORE__EXECUTOR=LocalExecutor
 ENV AIRFLOW__CORE__FERNET_KEY=${FERNET_KEY}
-ENV AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@dpg-d0212t3uibrs73b93vhg-a:5432/${POSTGRES_DB}
 
 # Expose Airflow webserver port
 EXPOSE 8080
