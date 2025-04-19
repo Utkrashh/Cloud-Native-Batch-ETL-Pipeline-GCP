@@ -25,7 +25,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # Copy project files into image
 COPY airflow/dags /opt/airflow/dags
 COPY airflow/plugins /opt/airflow/plugins
-COPY airflow/keys /opt/airflow/keys
 COPY start.sh /start.sh
 
 # Make the startup script executable
