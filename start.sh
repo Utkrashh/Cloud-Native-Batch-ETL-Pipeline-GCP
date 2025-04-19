@@ -1,12 +1,12 @@
 #!/bin/bash
 
+airflow dbinit
 # Wait for Airflow to initialize the database (just in case)
 echo "Waiting for Airflow to initialize..."
-sleep 60
+sleep 30
 
 # Create the Airflow admin user if it doesn't already exist
 echo "Creating Airflow admin user..."
-airflow dbinit
 airflow users create \
   --username ${AIRFLOW_ADMIN_USERNAME} \
   --firstname ${AIRFLOW_ADMIN_FIRSTNAME} \
