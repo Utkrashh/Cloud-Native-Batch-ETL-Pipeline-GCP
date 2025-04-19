@@ -38,4 +38,4 @@ ENV AIRFLOW__CORE__SQL_ALCHEMY_CONN=postgresql+psycopg2://airflow:${POSTGRES_PAS
 EXPOSE 8080
 
 # Set the default command (calls start.sh which handles everything)
-CMD ["/start.sh"]
+CMD ["bash", "-c", "/start.sh && airflow webserver && airflow scheduler"]
