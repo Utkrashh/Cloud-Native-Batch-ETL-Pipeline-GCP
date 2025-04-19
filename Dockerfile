@@ -27,7 +27,7 @@ COPY airflow/dags /opt/airflow/dags
 COPY start.sh /start.sh
 
 # Make the startup script executable
-RUN chmod +x /start.sh
+# RUN chmod +x /start.sh
 
 # Set environment variables for Airflow
 ENV AIRFLOW__CORE__EXECUTOR=LocalExecutor
