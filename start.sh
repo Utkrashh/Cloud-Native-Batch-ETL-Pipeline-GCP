@@ -15,3 +15,6 @@ airflow users create \
   --email ${AIRFLOW_ADMIN_EMAIL} \
   --password ${AIRFLOW_ADMIN_PASSWORD}
 
+# Start Airflow webserver and scheduler
+echo "Starting Airflow webserver and scheduler..."
+airflow webserver & airflow scheduler
