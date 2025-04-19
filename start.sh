@@ -1,6 +1,6 @@
 #!/bin/bash
 
-airflow dbinit
+airflow db init
 # Wait for Airflow to initialize the database (just in case)
 echo "Waiting for Airflow to initialize..."
 sleep 30
