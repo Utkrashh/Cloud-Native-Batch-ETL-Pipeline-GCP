@@ -1,178 +1,194 @@
-# Cloud-Native ETL Pipeline (Batch Data Processing)
-
-This project is a **batch ETL (Extract, Transform, Load) pipeline** built using **Apache Airflow** to ingest cryptocurrency data from the **CoinGecko API** and load it into **Google BigQuery**.
-
-The project is containerized with **Docker Compose** and includes all the necessary configurations to deploy and run the Airflow DAG locally. This guide will walk you through the setup process, including configuring a **service account**, managing environment variables securely, and running the ETL pipeline.
+Here’s a detailed `README.md` for the **Cloud-Native-ETL-Pipeline-Batch-Streaming-Data-Processing** project, structured to explain the setup, usage, and the batch pipeline:
 
 ---
 
-## 🚀 Features
-- Fetches **real-time cryptocurrency data** from the CoinGecko API.
-- Loads data into a **BigQuery table** in **Google Cloud Platform (GCP)**.
-- Automatically creates the BigQuery table (if it doesn’t exist) with additional columns for metadata like `created_date` and `created_by`.
-- Uses **Docker Compose** to run Apache Airflow (web server, scheduler, Redis, PostgreSQL) locally.
+# Cloud-Native ETL Pipeline: Batch & Streaming Data Processing
+
+This repository demonstrates how to build a **Cloud-Native ETL Pipeline** using **Apache Airflow**, **Google Cloud Platform (GCP)** services, and **Docker** to handle both **batch** and **real-time (streaming)** data processing.
+
+## Project Overview
+
+The project consists of a **batch ETL pipeline** that pulls cryptocurrency data from the **CoinGecko API**, performs transformations, and loads the data into **BigQuery**. Additionally, a **streaming pipeline** will later be added, which will push changes from BigQuery to **Pub/Sub**, and then process the data in real-time through **Cloud Functions**.
 
 ---
 
-## 🛠 Project Directory Structure
+## Folder Structure
+
+The directory structure is as follows:
 
 ```
 Cloud-Native-ETL-Pipeline-Batch-Streaming-Data-Processing/
-│
-├── airflow/                    # Folder for Apache Airflow setup
-│   ├── docker-compose.yaml     # Docker Compose file to run Airflow services
-│   └── .env                    # Environment variables file (to store sensitive credentials)
-│   └── env.example             # Example of the .env file to help others set up their environment
-│   |__ dags/                   # Folder to store Airflow DAGs (Directed Acyclic Graphs)
-│   └── coingecko_batch_dag.py  # Airflow DAG script for the batch ETL pipeline
-│
-└── venv/                       # Virtual environment folder (created by Python)
+├── .env                  # Environment variables for local setup
+├── .env.example          # Example .env file to be copied and customized
+├── .gitignore            # Git ignore file
+├── LICENSE               # Project license
+├── README.md             # Project documentation
+├── docker-compose.yaml   # Docker Compose file to start Airflow environment
+├── requirements.txt      # Required Python dependencies for the project
+├── start.sh              # Script to start Docker containers
+├── airflow/              
+│   ├── dags/             # Airflow DAGs for batch ETL pipeline
+│   │   ├── coingecko_batch_dag.py  # Main Airflow DAG file
+│   │   └── __pycache__/  # Compiled Python files
+│   ├── keys/             # GCP service account keys
+│   │   └── service-account-key.json  # Service account key for GCP access
+│   ├── logs/             # Airflow logs for DAG runs
+│   │   ├── dag_id=coingecko_etl_dag/
+│   │   │   ├── run_id=.../
+│   ├── plugins/          # Airflow custom plugins (if any)
 ```
 
 ---
 
-## 🔧 Setup Instructions
+## Technologies Used
 
-### Step 1: Clone the Repository
+- **Apache Airflow**: Orchestrates the ETL pipeline and scheduling
+- **Google Cloud Platform (GCP)**:
+  - **BigQuery**: Stores the processed cryptocurrency data
+  - **Cloud Storage**: Stores intermediate datasets (if needed)
+  - **Google Cloud SDK**: For deploying and managing GCP resources
+- **CoinGecko API**: Data source for cryptocurrency market information
+- **Docker**: For containerized local setup of Airflow
+
+---
+
+## Prerequisites
+
+To run this project locally, make sure you have the following:
+
+- **Docker** and **Docker Compose** installed on your machine
+- **Python 3.8+** installed locally
+- A **Google Cloud Platform** account with access to BigQuery and **Service Account Key** credentials
+- **Airflow** dependencies installed (if you need to run it outside Docker)
+
+---
+
+## Setup Instructions
+
+### 1. Clone the Repository
+
 ```bash
 git clone https://github.com/utkrashh/Cloud-Native-ETL-Pipeline-Batch-Streaming-Data-Processing.git
 cd Cloud-Native-ETL-Pipeline-Batch-Streaming-Data-Processing
 ```
 
----
+### 2. Set Up Environment Variables
 
-### Step 2: Configure Environment Variables
+Create a `.env` file by copying the `.env.example` file:
 
-To avoid storing sensitive credentials in the code, we use a `.env` file to manage environment variables.
+```bash
+cp .env.example .env
+```
 
-1. **Create the `.env` file:**
-   - Copy the `env.example` file and rename it to `.env`:
-     ```bash
-     cp airflow/env.example airflow/.env
-     ```
+Update the `.env` file with your own credentials and details for GCP, BigQuery, and your project configuration.
 
-2. **Edit the `.env` file**:
-   - Add your Google Cloud project information:
-     ```
-     # Google Cloud Credentials
-     GCP_PROJECT_ID=<your_project_id>
-     BQ_DATASET_ID=<your_bigquery_dataset_id>
-     BQ_TABLE_ID=<your_bigquery_table_id>
+### 3. Install Dependencies
 
-     # Path to your Google Cloud Service Account key file
-     GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account-key.json
-     ```
-   - Replace `<your_project_id>`, `<your_bigquery_dataset_id>`, and `<your_bigquery_table_id>` with your GCP details.
-   - Provide the correct path to your **service account key JSON file**.
+Install the required Python dependencies listed in `requirements.txt`:
 
----
+```bash
+pip install -r requirements.txt
+```
 
-### Step 3: Set Up a Google Cloud Service Account
+### 4. Configure Airflow Docker Environment
 
-In order to allow Apache Airflow to interact with BigQuery, you need to set up a **service account** with the necessary permissions.
+To set up Airflow using Docker, we use `docker-compose.yaml` to configure services like **Postgres**, **Redis**, and **Airflow** itself.
 
-1. **Create a Service Account**:
-   - Go to the [Google Cloud Console](https://console.cloud.google.com/).
-   - Navigate to **IAM & Admin > Service Accounts**.
-   - Click **Create Service Account** and follow the prompts.
-     - **Service Account Name**: `airflow-etl-service-account`
-     - **Service Account ID**: Auto-generated.
+### 5. Start Airflow Using Docker
 
-2. **Grant Permissions**:
-   - During service account creation, grant the following roles:
-     - **BigQuery Data Editor**: Allows creating, reading, and appending BigQuery data.
-     - **BigQuery Job User**: Allows the service account to submit BigQuery jobs.
+Run the following command to start the entire environment:
 
-3. **Download the Service Account Key**:
-   - Once the service account is created, click on the service account.
-   - Go to the **Keys** tab and click **Add Key > Create New Key**.
-   - Choose **JSON** and download the key file.
+```bash
+docker-compose up --build
+```
 
-4. **Store the Key Securely**:
-   - Move the downloaded key file to your project folder (e.g., `airflow/`) or a secure location.
-   - Update the `GOOGLE_APPLICATION_CREDENTIALS` path in your `.env` file to point to this key.
+This will set up:
+- **Airflow Webserver** running on port `8080`
+- **Airflow Scheduler** for task orchestration
+- **Postgres** as the backend database for Airflow
+- **Redis** as the broker for Airflow task queues
+
+### 6. Access Airflow UI
+
+Once the Docker containers are up, you can access the Airflow UI at [http://localhost:8080](http://localhost:8080). Use the default credentials (`airflow/airflow`).
+
+### 7. Running the DAG
+
+- Airflow will automatically pick up the DAG file `coingecko_batch_dag.py` from the `airflow/dags/` folder.
+- You can manually trigger the DAG or let it run on the schedule defined (every 2 minutes in your case).
+- The DAG will:
+  1. Check if the BigQuery table exists, and create it if necessary.
+  2. Fetch cryptocurrency data from CoinGecko.
+  3. Transform and insert the data into BigQuery.
 
 ---
 
-### Step 4: Run the Project Locally with Docker Compose
+## GCP Setup
 
-Once the environment is set up and the `.env` file is correctly configured, follow these steps to run Apache Airflow:
+### 1. Create a Service Account
 
-1. **Navigate to the `airflow` folder:**
-   ```bash
-   cd airflow
-   ```
+- In the Google Cloud Console, go to **IAM & Admin** > **Service Accounts**.
+- Create a new service account with **BigQuery Admin** and **Storage Admin** roles.
+- Download the **JSON Key** and place it in the `airflow/keys/` folder as `service-account-key.json`.
 
-2. **Build and Run the Docker Containers:**
-   ```bash
-   docker-compose up --build
-   ```
+### 2. Configure GCP Credentials in Airflow
 
-   This command will:
-   - Initialize the Airflow database.
-   - Start the Airflow web server, scheduler, PostgreSQL, and Redis.
+Update your `.env` file with the appropriate GCP project details:
 
-3. **Access the Airflow UI**:
-   - Open your browser and go to `http://localhost:8080`.
-   - Log in with the default credentials:
-     - **Username**: `airflow`
-     - **Password**: `airflow`
+```
+GCP_PROJECT_ID=your-project-id
+BQ_DATASET_ID=your-dataset-id
+BQ_TABLE_ID=your-table-id
+GOOGLE_APPLICATION_CREDENTIALS=airflow/keys/service-account-key.json
+```
 
 ---
 
-### Step 5: Add Your DAG to Airflow
+## Airflow DAGs
 
-1. **Add your DAG file**:
-   - Copy your DAG script (e.g., `coingecko_batch_dag.py`) to the `dags/` folder.
-   - Airflow will automatically detect the DAG and display it in the Airflow UI.
+### 1. **coingecko_batch_dag.py**
 
-2. **Enable the DAG**:
-   - In the Airflow UI, navigate to the **DAGs** tab.
-   - Find the `coingecko_etl_dag` and toggle the switch to enable it.
+The main DAG script for this batch ETL pipeline is located in `airflow/dags/coingecko_batch_dag.py`. The key components are:
 
----
-
-### Step 6: Trigger the ETL Pipeline
-
-1. **Manually Trigger the DAG**:
-   - In the Airflow UI, click on the `coingecko_etl_dag`.
-   - Click **Trigger DAG** to run the pipeline manually.
-
-2. **View the Task Logs**:
-   - Click on individual tasks to view logs and monitor the pipeline’s progress.
+- **create_bigquery_table()**: Checks if the target table exists in BigQuery and creates it if necessary.
+- **fetch_coingecko_data()**: Fetches real-time cryptocurrency data from the CoinGecko API.
+- **transform_and_insert_data()**: Transforms the data and inserts it into BigQuery.
 
 ---
 
-## 🧑‍💻 How the DAG Works
+## Running the Batch ETL Pipeline
 
-The DAG performs the following steps:
-1. **Create BigQuery Table**: Checks if the BigQuery table exists and creates it if necessary.
-2. **Fetch Data from CoinGecko API**: Retrieves cryptocurrency data in INR from the CoinGecko API.
-3. **Transform and Insert Data**: Adds metadata columns (`created_date`, `created_by`) and inserts the data into BigQuery in append mode.
+- The DAG is set to run every 2 minutes based on the schedule defined in `coingecko_batch_dag.py`.
+- It will extract data, transform it, and load it into BigQuery.
 
 ---
 
-## 🛡 Security Best Practices
-- **Environment Variables**: Keep sensitive credentials like `GCP_PROJECT_ID` and `GOOGLE_APPLICATION_CREDENTIALS` in the `.env` file (which should never be committed to version control).
-- **Use `env.example` for sharing setup instructions without exposing sensitive data.**
+## .env.example
+
+The `.env.example` file contains placeholders for environment variables you need to set up. You should copy this file to `.env` and replace the placeholders with your own values.
+
+Example `.env` file content:
+
+```plaintext
+GCP_PROJECT_ID=your_project_id
+BQ_DATASET_ID=your_dataset_id
+BQ_TABLE_ID=your_table_id
+GOOGLE_APPLICATION_CREDENTIALS=airflow/keys/service-account-key.json
+```
 
 ---
 
-## 🎯 Future Enhancements
-- Add more transformations to the ETL pipeline.
-- Integrate monitoring and alerting for the Airflow tasks.
-- Expand the pipeline to handle streaming data.
+## Troubleshooting
+
+- If the BigQuery table already exists, the DAG will skip the creation step.
+- If the DAG fails, check the **Airflow logs** in the `logs/` directory for detailed error messages.
 
 ---
 
-## 🤝 Contributing
-Contributions are welcome! Please open issues or submit pull requests to suggest improvements.
+## License
 
----
-
-## 📝 License
 This project is licensed under the MIT License.
 
 ---
 
-Feel free to copy and use this as your project's README! 🎯
+Let me know if you need any adjustments or additional details!
