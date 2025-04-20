@@ -37,4 +37,4 @@ ENV AIRFLOW__CORE__FERNET_KEY=${FERNET_KEY}
 EXPOSE 8080
 
 # Set the default command (calls start.sh which handles everything)
-CMD ["bash", "-c", "/start.sh && airflow webserver && airflow scheduler"]
+CMD ["bash", "-c", "/start.sh && airflow webserver"]
